@@ -2,24 +2,26 @@
 	import * as Card from '$lib/components/ui/card/index.js';
 	import * as Form from '$lib/components/ui/form/index.js';
 	import { Input } from '$lib/components/ui/input/index.js';
-	import { loginFormSchema, type LoginFormSchema } from '$lib/features/auth/domain/auth.validation';
+	import {
+		registerFormSchema,
+		type RegisterFormSchema
+	} from '$lib/features/auth/domain/auth.validation';
 	import { type SuperValidated, type Infer, superForm } from 'sveltekit-superforms';
 	import { zod4Client } from 'sveltekit-superforms/adapters';
 	import { Button } from '$lib/components/ui/button';
 	import { toast } from 'svelte-sonner';
 	import LoaderCircle from '@lucide/svelte/icons/loader-circle';
 
-	let { form: initialForm }: { form: SuperValidated<Infer<LoginFormSchema>> } = $props();
+	let { form: initialForm }: { form: SuperValidated<Infer<RegisterFormSchema>> } = $props();
 
 	const form = superForm(initialForm, {
-		validators: zod4Client(loginFormSchema),
+		validators: zod4Client(registerFormSchema),
 		validationMethod: 'oninput',
 		onUpdated({ form }) {
 			if (!form.valid && form.errors._errors?.length) {
 				toast.error(form.errors._errors[0]);
 			} else if (form.valid) {
-				console.log(form);
-				toast.success('Login Successful');
+				toast.success('Sign up Successful');
 			}
 		}
 	});
@@ -30,11 +32,22 @@
 <div class="h-full flex-center">
 	<Card.Root class="w-full max-w-md">
 		<Card.Header>
-			<Card.Title class="text-center font-semibold text-xl">Login to your account</Card.Title>
+			<Card.Title class="text-center font-semibold text-xl">Register for an account</Card.Title>
 		</Card.Header>
 		<Card.Content>
 			<form method="POST" use:enhance>
 				<div class="flex flex-col gap-4">
+					<Form.Field {form} name="name">
+						<Form.Control>
+							{#snippet children({ props })}
+								<Form.Label>Name</Form.Label>
+								<Input {...props} bind:value={$formData.name} type="text" placeholder="John Doe" />
+							{/snippet}
+						</Form.Control>
+
+						<Form.FieldErrors />
+					</Form.Field>
+
 					<Form.Field {form} name="email">
 						<Form.Control>
 							{#snippet children({ props })}
@@ -67,12 +80,28 @@
 						<Form.FieldErrors />
 					</Form.Field>
 
+					<Form.Field {form} name="confirmPassword">
+						<Form.Control>
+							{#snippet children({ props })}
+								<Form.Label>Confirm Password</Form.Label>
+								<Input
+									{...props}
+									bind:value={$formData.confirmPassword}
+									type="password"
+									placeholder="*****"
+								/>
+							{/snippet}
+						</Form.Control>
+
+						<Form.FieldErrors />
+					</Form.Field>
+
 					<Button class="w-full" type="submit" disabled={$delayed}>
 						{#if $delayed}
 							<LoaderCircle class="size-4 animate-spin" />
-							Logging in...
+							Creating account...
 						{:else}
-							Log in
+							Register
 						{/if}
 					</Button>
 				</div>
@@ -80,7 +109,7 @@
 		</Card.Content>
 
 		<Card.Footer class="flex-col gap-2">
-			<p>Don't have an account? <a href="/register" class="text-primary">Register</a></p>
+			<p>Already have an account? <a href="/login" class="text-primary">Login</a></p>
 		</Card.Footer>
 	</Card.Root>
 </div>
